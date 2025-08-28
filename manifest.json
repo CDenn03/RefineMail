@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "AI Email Refiner",
+  "author": "CDenn03",
+  "developer": {
+    "name": "CDenn03",
+    "url": ""
+  },
+  "version": "1.0.0",
+  "description": "Rewrite your Gmail and Zimbra emails with AI — formal, concise, or friendly styles.",
+  "permissions": ["storage", "scripting", "activeTab","clipboardRead","clipboardWrite"],
+  "host_permissions": ["https://api.openai.com/*"],
+  "background": {
+  "scripts": ["background.js"]
+},
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://mail.google.com/*", "https://*/zimbra/*"],
+      "js": ["content.js"]
+    }
+  ]
+}

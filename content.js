@@ -1,5 +1,5 @@
+// Inject "✨ Improve Email" button
 function injectButton() {
-  // Gmail compose box has div[aria-label="Message Body"]
   let composeBox = document.querySelector('div[aria-label="Message Body"]') ||
                    document.querySelector('textarea'); // fallback for Zimbra
 
@@ -15,7 +15,7 @@ function injectButton() {
     btn.style.cursor = "pointer";
 
     btn.onclick = () => {
-      let text = composeBox.innerText || composeBox.value;
+      let text = composeBox.innerHTML || composeBox.value;
       chrome.runtime.sendMessage({ action: "improve", text: text });
     };
 
@@ -23,18 +23,13 @@ function injectButton() {
   }
 }
 
-setInterval(injectButton, 2000); // keep trying in case UI reloads
+// MutationObserver (instead of setInterval)
+const observer = new MutationObserver(injectButton);
+observer.observe(document.body, { childList: true, subtree: true });
 
+// Listen for improved text
 chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.action === "replace") {
-    let composeBox = document.querySelector('div[aria-label="Message Body"]') ||
-                     document.querySelector('textarea');
-    if (composeBox) {
-      if (composeBox.innerText !== undefined) {
-        composeBox.innerText = msg.text;
-      } else {
-        composeBox.value = msg.text;
-      }
-    }
+  if (msg.action === "preview") {
+    showPreviewModal(msg.original, msg.improved);
   }
 });

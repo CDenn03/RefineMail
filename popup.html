@@ -4,18 +4,27 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h3>Email Improver</h3>
-  <label for="preset">Choose a style:</label>
-  <select id="preset">
-    <option value="Formal">Formal</option>
-    <option value="Friendly">Friendly</option>
-    <option value="Concise">Concise</option>
-  </select>
-
-  <label for="instruction">Custom instructions:</label>
-  <textarea id="instruction" placeholder="e.g. make it urgent but polite"></textarea>
-
-  <button id="execute">Execute</button>
+  <div class="card">
+    <h2>AI Email Improver</h2>
+    <div class="card-body">
+      <label for="preset">Choose a style:</label>
+      <select id="preset">
+        <option value="Formal">Formal</option>
+        <option value="Friendly">Friendly</option>
+        <option value="Concise">Concise</option>
+        <option value="Persuasive">Persuasive</option>
+        <option value="Apologetic">Apologetic</option>
+        <option value="Casual">Casual</option>
+        <option value="Neutral">Neutral/Professional</option>
+      </select>
+  
+      <label for="instruction">Custom instructions:</label>
+      <textarea id="instruction" placeholder="e.g. make it urgent but polite"></textarea>
+  
+      <button id="improve">Improve Email</button>
+      <p class="note"><a href="privacy.html" target="_blank">Privacy Policy</a></p>
+    </div>
+  </div>
 
   <script src="popup.js"></script>
 </body>

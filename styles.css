@@ -1,137 +1,272 @@
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  background: #f7f9fc;
-  width: 320px;
-  height: auto;
-  margin: 0;
-  padding: 10px;
+/* ========================
+   Improve Button Styles
+   ======================== */
+
+.improve-email-btn {
+  position: absolute !important;
+  bottom: 10px !important;
+  right: 60px !important;
+  z-index: 10000 !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  border: 2px solid #124170 !important;
+  border-radius: 50% !important;
+  background: #9b5a06 !important;
+  color: white !important;
+  cursor: move !important;
+  font-size: 10px !important;
+  font-weight: bold !important;
+  font-family: Arial, sans-serif !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+  transition: background 0.2s ease, transform 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
 }
 
-.card {
-  background: white;
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 10px 10px;
+.improve-email-btn:hover {
+  background: #1a5a8a !important;
+  border-color: #1a5a8a !important;
+  transform: scale(1.05) !important;
 }
 
-h2 {
-  margin: 0 0 10px;
-  color: #124170;
+.improve-email-btn:active {
+  transform: scale(0.95) !important;
 }
 
-label {
-  font-weight: bold;
-  font-size: 0.9em;
+/* Position relative to Gmail's button area (Default State) */
+.btC .improve-email-btn,
+.gU .improve-email-btn {
+  position: relative !important;
+  margin-left: 8px !important;
+  bottom: auto !important;
+  right: auto !important;
 }
 
-select {
-  width: 100%;
-  padding: 6px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 0.9em;
-}
-textarea {
-  padding: 6px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 0.9em;
-  resize: vertical;        
-  max-height: 80px;        
-  min-height: 40px;     
-  overflow-y: auto;    
-}
-
-
-button {
-  background: #124170;
-  border: none;
-  color: white;
-  padding: 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9em;
-  width: 100%;
+/* ========================
+   CRITICAL FIX: Dragging State
+   ======================== */
+/* This rule MUST be last to override the .btC rule above */
+.improve-email-btn[style*="position: fixed"] {
+  position: fixed !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  
+  /* Reset layout constraints so the JS can position it freely */
+  bottom: auto !important;
+  right: auto !important;
+  margin: 0 !important;
+  
+  /* Optional: Visual feedback for dragging */
+  cursor: grabbing !important;
+  transform: scale(1.1) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
 }
 
-button:hover {
-  background: #132a42;
-}
+/* ========================
+   Modal Styles
+   ======================== */
 
-.note {
-  font-size: 0.75em;
-  text-align: right;
-  margin-top: 5px;
-}
-/* Overlay */
 .ai-modal-overlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.4);
-  z-index: 9998;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-/* Modal */
 .ai-modal {
-  position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-  width: 600px;
-  max-width: 90%;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  background: white !important;
+  border-radius: 8px !important;
+  padding: 24px !important;
+  width: 90% !important;
+  max-width: 600px !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+  font-family: Arial, sans-serif !important;
+  position: relative !important;
+  z-index: 2147483648 !important;
+  margin: 20px !important;
 }
 
-/* Textareas */
+.ai-modal h2 {
+  margin: 0 0 20px 0 !important;
+  color: #124170 !important;
+  font-size: 20px !important;
+  font-weight: bold !important;
+}
+
+.ai-modal label {
+  display: block !important;
+  margin: 16px 0 6px 0 !important;
+  font-weight: bold !important;
+  color: #333 !important;
+  font-size: 14px !important;
+}
+
+.ai-modal textarea,
+.ai-modal select {
+  width: 100% !important;
+  padding: 10px !important;
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  font-family: Arial, sans-serif !important;
+  box-sizing: border-box !important;
+  resize: vertical !important;
+}
+
 .ai-modal textarea {
-  width: 100%;
-  min-height: 100px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  resize: vertical;
-  font-family: Arial, sans-serif;
-  font-size: 0.9em;
+  min-height: 80px !important;
 }
 
-/* Buttons */
+.ai-modal select {
+  height: 40px !important;
+  cursor: pointer !important;
+}
+
 .ai-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  display: flex !important;
+  gap: 12px !important;
+  margin-top: 24px !important;
+  justify-content: flex-end !important;
 }
 
 .ai-buttons button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9em;
+  padding: 10px 20px !important;
+  border: none !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s ease !important;
 }
 
-#applyImproved {
-  background: #30C5E0;
+.ai-buttons button:first-child {
+  background: #124170 !important;
+  color: white !important;
+}
+
+.ai-buttons button:first-child:hover {
+  background: #1a5a8a !important;
+}
+
+.ai-buttons button:first-child:disabled {
+  background: #ccc !important;
+  cursor: not-allowed !important;
+}
+
+.ai-buttons button:last-child {
+  background: #f5f5f5 !important;
+  color: #333 !important;
+  border: 1px solid #ddd !important;
+}
+
+.ai-buttons button:last-child:hover {
+  background: #e9e9e9 !important;
+}
+
+/* Popup Styles */
+.card {
+  width: 320px;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+}
+
+.card h2 {
+  margin: 0 0 16px 0;
+  color: #124170;
+  font-size: 18px;
+}
+
+.card-body label {
+  display: block;
+  margin: 12px 0 4px 0;
+  font-weight: bold;
+  color: #333;
+  font-size: 13px;
+}
+
+.card-body select,
+.card-body textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.card-body textarea {
+  height: 60px;
+  resize: vertical;
+}
+
+.card-body button {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.card-body button:first-of-type {
+  background: #124170;
   color: white;
 }
 
-#cancelImproved {
-  background: #ddd;
+.card-body button:first-of-type:hover {
+  background: #1a5a8a;
 }
 
+.card-body button:last-of-type {
+  background: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.card-body button:last-of-type:hover {
+  background: #e9e9e9;
+}
+
+#statusMsg {
+  color: #28a745;
+  font-size: 12px;
+  margin: 8px 0;
+  text-align: center;
+}
+
+.note {
+  font-size: 11px;
+  color: #666;
+  text-align: center;
+  margin: 12px 0 0 0;
+}
+
+.note a {
+  color: #124170;
+  text-decoration: none;
+}
+
+.note a:hover {
+  text-decoration: underline;
+}

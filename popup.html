@@ -7,7 +7,11 @@
   <div class="card">
     <h2>AI Email Improver</h2>
     <div class="card-body">
-      <label for="preset">Choose a style:</label>
+      <p style="font-size: 13px; color: #666; margin-bottom: 16px;">
+        Click the AI button in your email compose box to improve your email with customizable styles and instructions.
+      </p>
+      
+      <label for="preset">Default style:</label>
       <select id="preset">
         <option value="Formal">Formal</option>
         <option value="Friendly">Friendly</option>
@@ -15,13 +19,14 @@
         <option value="Persuasive">Persuasive</option>
         <option value="Apologetic">Apologetic</option>
         <option value="Casual">Casual</option>
-        <option value="Neutral">Neutral/Professional</option>
+        <option value="Neutral/Professional">Neutral/Professional</option>
       </select>
   
-      <label for="instruction">Custom instructions:</label>
+      <label for="instruction">Default custom instructions:</label>
       <textarea id="instruction" placeholder="e.g. make it urgent but polite"></textarea>
   
-      <button id="improve">Improve Email</button>
+      <button id="saveSettings">Save Default Settings</button>
+      <div id="statusMsg"></div>
       <p class="note"><a href="privacy.html" target="_blank">Privacy Policy</a></p>
     </div>
   </div>

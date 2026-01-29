@@ -6,10 +6,7 @@
   "description": "Rewrite your Gmail and Zimbra emails with AI — formal, concise, or friendly styles.",
   "permissions": [
     "storage",
-    "scripting",
-    "activeTab",
-    "clipboardRead",
-    "clipboardWrite"
+    "activeTab"
   ],
   "host_permissions": ["https://api.openai.com/*"],
   "background": {
@@ -31,7 +28,15 @@
         "https://mail.google.com/*",
         "https://*/zimbra/*"
       ],
-      "js": ["content.js", "modal.js"]
+      "js": [
+        "button-manager.js",
+        "drag-handler.js", 
+        "compose-detector.js",
+        "message-handler.js",
+        "content-main.js",
+        "modal.js"
+      ],
+      "css": ["styles.css"]
     }
   ]
 }

@@ -1,21 +1,23 @@
 document.addEventListener("DOMContentLoaded", () => {
   const presetEl = document.getElementById("preset");
   const instructionEl = document.getElementById("instruction");
-  const saveBtn = document.getElementById("improve");
+  const saveBtn = document.getElementById("saveSettings");
+  const statusMsg = document.getElementById("statusMsg");
 
-  // Load saved settings
   chrome.storage.sync.get(["preset", "instruction"], (res) => {
     if (res.preset) presetEl.value = res.preset;
     if (res.instruction) instructionEl.value = res.instruction;
   });
 
-  // Save on click
   saveBtn.addEventListener("click", () => {
-    let preset = presetEl.value;
-    let instruction = instructionEl.value;
+    const preset = presetEl.value;
+    const instruction = instructionEl.value;
 
     chrome.storage.sync.set({ preset, instruction }, () => {
-      alert("Settings saved!");
+      statusMsg.textContent = "Default settings saved!";
+      setTimeout(() => {
+        statusMsg.textContent = "";
+      }, 2000);
     });
   });
 });

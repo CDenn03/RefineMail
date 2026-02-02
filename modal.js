@@ -1,13 +1,11 @@
 function showStyleSelectionModal(originalText, composeBox) {
   console.log("showStyleSelectionModal called with text:", originalText);
 
-  // Check if extension context is still valid
   if (!chrome.runtime?.id) {
     alert("Extension needs to be refreshed. Please reload the page and try again.");
     return;
   }
 
-  // Get email content using the compose detector
   const detector = new ComposeDetector();
   const emailContent = detector.getEmailContent(composeBox);
 
@@ -106,7 +104,6 @@ function showStyleSelectionModal(originalText, composeBox) {
     }
   };
 
-  // Load saved preferences with proper error handling
   try {
     if (chrome.storage?.sync && chrome.runtime?.id) {
       chrome.storage.sync.get(["preset", "instruction"], (res) => {
@@ -136,7 +133,6 @@ function showStyleSelectionModal(originalText, composeBox) {
       return;
     }
 
-    // Save preferences with proper error handling
     try {
       if (chrome.storage?.sync && chrome.runtime?.id) {
         chrome.storage.sync.set({
@@ -200,7 +196,6 @@ function showPreviewModal(original, improved) {
   const title = document.createElement("h2");
   title.textContent = "AI Email Preview";
 
-  // === ORIGINAL EMAIL SECTION ===
   const originalLabel = document.createElement("label");
   originalLabel.textContent = "Original:";
 
@@ -217,9 +212,9 @@ function showPreviewModal(original, improved) {
 
   const originalTextarea = document.createElement("textarea");
   originalTextarea.readOnly = true;
-  originalTextarea.value = original.body || original; // Handle both old and new format
+  originalTextarea.value = original.body || original; 
 
-  // === IMPROVED EMAIL SECTION ===
+
   const improvedLabel = document.createElement("label");
   improvedLabel.textContent = "Improved:";
 
@@ -236,9 +231,9 @@ function showPreviewModal(original, improved) {
 
   const improvedTextarea = document.createElement("textarea");
   improvedTextarea.id = "aiImprovedBox";
-  improvedTextarea.value = improved.body || improved; // Handle both old and new format
+  improvedTextarea.value = improved.body || improved; 
 
-  // === BUTTONS ===
+
   const buttonsDiv = document.createElement("div");
   buttonsDiv.className = "ai-buttons";
 
@@ -253,7 +248,7 @@ function showPreviewModal(original, improved) {
   buttonsDiv.appendChild(applyBtn);
   buttonsDiv.appendChild(cancelBtn);
 
-  // === BUILD MODAL ===
+
   modalContent.appendChild(title);
   modalContent.appendChild(originalLabel);
   modalContent.appendChild(originalSubjectLabel);
@@ -268,14 +263,12 @@ function showPreviewModal(original, improved) {
   modal.appendChild(modalContent);
   document.body.appendChild(modal);
 
-  // Close on overlay click
   modal.onclick = (e) => {
     if (e.target === modal) {
       modal.remove();
     }
   };
 
-  // Apply button handler
   applyBtn.onclick = () => {
     const newSubject = improvedSubjectInput.value;
     const newBody = improvedTextarea.value;

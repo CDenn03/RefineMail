@@ -72,15 +72,14 @@ class ContentMain {
   
   cleanup() {
     this.detector.stopWatching();
-    
-    // Clean up drag handlers
+
     this.dragHandlers.forEach((dragHandler) => {
       if (typeof dragHandler.cleanup === 'function') {
         dragHandler.cleanup();
       }
     });
     
-    // Clean up buttons
+
     this.buttonInstances.forEach((button) => {
       ButtonManager.cleanupButton(button);
     });

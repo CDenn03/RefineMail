@@ -10,12 +10,30 @@ class MessageHandler {
     console.log("Captured message content:", text);
   }
   
+  static validateEmailContent(text) {
+    if (!text || typeof text !== 'string') {
+      return { valid: false, error: "Please write some text in the email before improving it." };
+    }
+    
+    const trimmed = text.trim();
+    if (trimmed.length === 0) {
+      return { valid: false, error: "Please write some text in the email before improving it." };
+    }
+    
+    if (trimmed.length > 3000) {
+      return { valid: false, error: "Email content is too long (max 3000 characters). Please shorten your email and try again." };
+    }
+    
+    return { valid: true };
+  }
+  
   static handleButtonClick(composeBox, button) {
     const text = this.extractText(composeBox);
     this.logMessageContent(text, composeBox, "Button");
     
-    if (!text.trim()) {
-      alert("Please write some text in the email before improving it.");
+    const validation = this.validateEmailContent(text);
+    if (!validation.valid) {
+      alert(validation.error);
       return;
     }
     
@@ -29,8 +47,9 @@ class MessageHandler {
     
     this.logMessageContent(text, activeComposeBox, "Popup");
     
-    if (!text.trim()) {
-      alert("Please write some text in the email before improving it.");
+    const validation = this.validateEmailContent(text);
+    if (!validation.valid) {
+      alert(validation.error);
       return;
     }
     
@@ -50,11 +69,15 @@ class MessageHandler {
     const bodyText = this.extractText(activeComposeBox);
     const wordCount = bodyText.trim().split(/\s+/).filter(word => word.length > 0).length;
     
+    const validation = this.validateEmailContent(bodyText);
+    
     sendResponse({
       hasEmail: true,
       subject: emailContent.subject || "",
       body: bodyText,
-      wordCount: wordCount
+      wordCount: wordCount,
+      isValid: validation.valid,
+      validationError: validation.valid ? null : validation.error
     });
   }
   

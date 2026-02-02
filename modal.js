@@ -6,6 +6,17 @@ function showStyleSelectionModal(originalText, composeBox) {
     return;
   }
 
+  // Validate email content before showing modal
+  if (!originalText || originalText.trim().length === 0) {
+    alert("Please write some text in the email before improving it.");
+    return;
+  }
+
+  if (originalText.length > 3000) {
+    alert("Email content is too long (max 3000 characters). Please shorten your email and try again.");
+    return;
+  }
+
   const detector = new ComposeDetector();
   const emailContent = detector.getEmailContent(composeBox);
 
@@ -39,7 +50,7 @@ function showStyleSelectionModal(originalText, composeBox) {
   subjectInput.style.marginBottom = "10px";
 
   const bodyLabel = document.createElement("label");
-  bodyLabel.textContent = "Message Body:";
+  bodyLabel.textContent = `Message Body (${originalText.length}/3000 characters):`;
 
   const originalTextarea = document.createElement("textarea");
   originalTextarea.readOnly = true;
@@ -48,6 +59,7 @@ function showStyleSelectionModal(originalText, composeBox) {
 
   const styleLabel = document.createElement("label");
   styleLabel.textContent = "Choose a style:";
+  styleLabel.style.fontWeight = "bold";
 
   const styleSelect = document.createElement("select");
   styleSelect.id = "styleSelect";
@@ -59,6 +71,27 @@ function showStyleSelectionModal(originalText, composeBox) {
     styleSelect.appendChild(option);
   });
 
+  const styleDescriptions = {
+    "Formal": "Professional, structured, respectful tone",
+    "Friendly": "Warm, approachable, conversational",
+    "Concise": "Brief, direct, essential information only",
+    "Persuasive": "Compelling, action-oriented, convincing",
+    "Apologetic": "Regretful, understanding, solution-focused",
+    "Casual": "Relaxed, informal, natural language",
+    "Neutral/Professional": "Balanced, clear, business-appropriate"
+  };
+
+  const styleDescription = document.createElement("div");
+  styleDescription.id = "styleDescription";
+  styleDescription.style.fontSize = "0.9em";
+  styleDescription.style.color = "#666";
+  styleDescription.style.marginBottom = "10px";
+  styleDescription.textContent = styleDescriptions[styleSelect.value];
+
+  styleSelect.addEventListener('change', () => {
+    styleDescription.textContent = styleDescriptions[styleSelect.value];
+  });
+
   const instructionLabel = document.createElement("label");
   instructionLabel.textContent = "Custom instructions (optional):";
 
@@ -66,6 +99,13 @@ function showStyleSelectionModal(originalText, composeBox) {
   instructionTextarea.id = "customInstruction";
   instructionTextarea.placeholder = "e.g. make it urgent but polite";
   instructionTextarea.style.height = "60px";
+
+  const warningDiv = document.createElement("div");
+  warningDiv.style.fontSize = "0.85em";
+  warningDiv.style.color = "#e74c3c";
+  warningDiv.style.marginBottom = "10px";
+  warningDiv.style.display = "none";
+  warningDiv.id = "validationWarning";
 
   const buttonsDiv = document.createElement("div");
   buttonsDiv.className = "ai-buttons";
@@ -88,8 +128,10 @@ function showStyleSelectionModal(originalText, composeBox) {
   modalContent.appendChild(originalTextarea);
   modalContent.appendChild(styleLabel);
   modalContent.appendChild(styleSelect);
+  modalContent.appendChild(styleDescription);
   modalContent.appendChild(instructionLabel);
   modalContent.appendChild(instructionTextarea);
+  modalContent.appendChild(warningDiv);
   modalContent.appendChild(buttonsDiv);
 
   modal.appendChild(modalContent);
@@ -111,7 +153,10 @@ function showStyleSelectionModal(originalText, composeBox) {
           console.log("Could not load saved preferences:", chrome.runtime.lastError);
           return;
         }
-        if (res.preset) styleSelect.value = res.preset;
+        if (res.preset && styles.includes(res.preset)) {
+          styleSelect.value = res.preset;
+          styleDescription.textContent = styleDescriptions[res.preset];
+        }
         if (res.instruction) instructionTextarea.value = res.instruction;
       });
     } else {
@@ -123,7 +168,31 @@ function showStyleSelectionModal(originalText, composeBox) {
 
   improveBtn.onclick = () => {
     const selectedStyle = styleSelect.value;
-    const customInstruction = instructionTextarea.value;
+    const customInstruction = instructionTextarea.value.trim();
+
+    const validStyles = ["Formal", "Friendly", "Concise", "Persuasive", "Apologetic", "Casual", "Neutral/Professional"];
+    if (!validStyles.includes(selectedStyle)) {
+      warningDiv.textContent = "Please select a valid style.";
+      warningDiv.style.display = "block";
+      return;
+    }
+
+    const bannedInstructions = [
+      'write a new', 'create a new', 'generate a new', 'add examples', 
+      'include examples', 'make up', 'invent', 'create content'
+    ];
+    
+    const hasNewContentRequest = bannedInstructions.some(banned => 
+      customInstruction.toLowerCase().includes(banned)
+    );
+    
+    if (hasNewContentRequest) {
+      warningDiv.textContent = "Instructions cannot request new content creation. Please focus on style changes only.";
+      warningDiv.style.display = "block";
+      return;
+    }
+
+    warningDiv.style.display = "none";
 
     console.log("Improve button clicked with style:", selectedStyle, "instruction:", customInstruction);
 
@@ -151,9 +220,9 @@ function showStyleSelectionModal(originalText, composeBox) {
       chrome.runtime.sendMessage({
         action: "improve",
         subject: emailContent.subject,
-        text: emailContent.body,
+        text: originalText,
         style: selectedStyle,
-        instruction: customInstruction
+        instruction: customInstruction || null
       }, (response) => {
         if (chrome.runtime.lastError) {
           console.error("Runtime error:", chrome.runtime.lastError);
@@ -214,7 +283,6 @@ function showPreviewModal(original, improved) {
   originalTextarea.readOnly = true;
   originalTextarea.value = original.body || original; 
 
-
   const improvedLabel = document.createElement("label");
   improvedLabel.textContent = "Improved:";
 
@@ -233,7 +301,6 @@ function showPreviewModal(original, improved) {
   improvedTextarea.id = "aiImprovedBox";
   improvedTextarea.value = improved.body || improved; 
 
-
   const buttonsDiv = document.createElement("div");
   buttonsDiv.className = "ai-buttons";
 
@@ -247,7 +314,6 @@ function showPreviewModal(original, improved) {
 
   buttonsDiv.appendChild(applyBtn);
   buttonsDiv.appendChild(cancelBtn);
-
 
   modalContent.appendChild(title);
   modalContent.appendChild(originalLabel);

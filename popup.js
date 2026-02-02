@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         
         if (response?.hasEmail) {
-          showEmailContent(response.subject, response.body, response.wordCount);
+          showEmailContent(response.subject, response.body, response.wordCount, response.isValid, response.validationError);
         } else {
           showNoEmailState();
         }
@@ -74,13 +74,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function showEmailContent(subject, body, wordCount) {
+  function showEmailContent(subject, body, wordCount, isValid, validationError) {
     currentSubject.value = subject || "(No subject)";
 
     const preview = body.length > 150 ? body.substring(0, 150) + "..." : body;
     currentBody.value = preview;
     
-    improveNowBtn.textContent = `Improve Now (${wordCount || 0} words)`;
+    if (isValid) {
+      improveNowBtn.textContent = `Improve Now (${wordCount || 0} words)`;
+      improveNowBtn.disabled = false;
+      improveNowBtn.style.opacity = "1";
+    } else {
+      improveNowBtn.textContent = validationError || "Invalid Email";
+      improveNowBtn.disabled = true;
+      improveNowBtn.style.opacity = "0.6";
+    }
     
     currentEmailSection.style.display = "block";
     noEmailSection.style.display = "none";

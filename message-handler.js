@@ -34,8 +34,28 @@ class MessageHandler {
       return;
     }
     
-
     showStyleSelectionModal(text, activeComposeBox);
+  }
+  
+  static handleGetEmailContent(sendResponse) {
+    const detector = new ComposeDetector();
+    const activeComposeBox = detector.findActiveComposeBox();
+    
+    if (!activeComposeBox) {
+      sendResponse({ hasEmail: false });
+      return;
+    }
+    
+    const emailContent = detector.getEmailContent(activeComposeBox);
+    const bodyText = this.extractText(activeComposeBox);
+    const wordCount = bodyText.trim().split(/\s+/).filter(word => word.length > 0).length;
+    
+    sendResponse({
+      hasEmail: true,
+      subject: emailContent.subject || "",
+      body: bodyText,
+      wordCount: wordCount
+    });
   }
   
   static setupMessageListener() {
@@ -44,9 +64,12 @@ class MessageHandler {
       return;
     }
     
-    chrome.runtime.onMessage.addListener((message) => {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.action === "triggerImprove") {
         this.handlePopupTrigger();
+      } else if (message.action === "getEmailContent") {
+        this.handleGetEmailContent(sendResponse);
+        return true; 
       }
     });
   }

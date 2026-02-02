@@ -1,6 +1,16 @@
 function showStyleSelectionModal(originalText, composeBox) {
   console.log("showStyleSelectionModal called with text:", originalText);
-  
+
+  // Check if extension context is still valid
+  if (!chrome.runtime?.id) {
+    alert("Extension needs to be refreshed. Please reload the page and try again.");
+    return;
+  }
+
+  // Get email content using the compose detector
+  const detector = new ComposeDetector();
+  const emailContent = detector.getEmailContent(composeBox);
+
   let oldModal = document.getElementById("aiStyleModal");
   if (oldModal) {
     console.log("Removing old modal");
@@ -10,19 +20,28 @@ function showStyleSelectionModal(originalText, composeBox) {
   const modal = document.createElement("div");
   modal.id = "aiStyleModal";
   modal.className = "ai-modal-overlay";
-  
+
   console.log("Created modal element:", modal);
 
   const modalContent = document.createElement("div");
   modalContent.className = "ai-modal";
-  
+
   console.log("Created modal content:", modalContent);
 
   const title = document.createElement("h2");
   title.textContent = "AI Email Improver";
 
-  const originalLabel = document.createElement("label");
-  originalLabel.textContent = "Original Email:";
+  const subjectLabel = document.createElement("label");
+  subjectLabel.textContent = "Subject:";
+
+  const subjectInput = document.createElement("input");
+  subjectInput.type = "text";
+  subjectInput.readOnly = true;
+  subjectInput.value = emailContent.subject || '(No subject)';
+  subjectInput.style.marginBottom = "10px";
+
+  const bodyLabel = document.createElement("label");
+  bodyLabel.textContent = "Message Body:";
 
   const originalTextarea = document.createElement("textarea");
   originalTextarea.readOnly = true;
@@ -65,7 +84,9 @@ function showStyleSelectionModal(originalText, composeBox) {
   buttonsDiv.appendChild(cancelBtn);
 
   modalContent.appendChild(title);
-  modalContent.appendChild(originalLabel);
+  modalContent.appendChild(subjectLabel);
+  modalContent.appendChild(subjectInput);
+  modalContent.appendChild(bodyLabel);
   modalContent.appendChild(originalTextarea);
   modalContent.appendChild(styleLabel);
   modalContent.appendChild(styleSelect);
@@ -75,7 +96,7 @@ function showStyleSelectionModal(originalText, composeBox) {
 
   modal.appendChild(modalContent);
   document.body.appendChild(modal);
-  
+
   console.log("Modal added to document body. Modal in DOM:", document.getElementById("aiStyleModal"));
 
   modal.onclick = (e) => {
@@ -85,32 +106,47 @@ function showStyleSelectionModal(originalText, composeBox) {
     }
   };
 
-  chrome.storage.sync.get(["preset", "instruction"], (res) => {
-    if (chrome.runtime.lastError) {
-      console.log("Could not load saved preferences:", chrome.runtime.lastError);
-      return;
+  // Load saved preferences with proper error handling
+  try {
+    if (chrome.storage?.sync && chrome.runtime?.id) {
+      chrome.storage.sync.get(["preset", "instruction"], (res) => {
+        if (chrome.runtime.lastError) {
+          console.log("Could not load saved preferences:", chrome.runtime.lastError);
+          return;
+        }
+        if (res.preset) styleSelect.value = res.preset;
+        if (res.instruction) instructionTextarea.value = res.instruction;
+      });
+    } else {
+      console.log("Chrome storage not available in this context");
     }
-    if (res.preset) styleSelect.value = res.preset;
-    if (res.instruction) instructionTextarea.value = res.instruction;
-  });
+  } catch (error) {
+    console.log("Extension context error when loading preferences:", error);
+  }
 
   improveBtn.onclick = () => {
     const selectedStyle = styleSelect.value;
     const customInstruction = instructionTextarea.value;
-    
+
     console.log("Improve button clicked with style:", selectedStyle, "instruction:", customInstruction);
-    
-    // Check if extension context is still valid
+
     if (!chrome.runtime?.id) {
       alert("Extension needs to be refreshed. Please reload the page and try again.");
       modal.remove();
       return;
     }
-    
-    chrome.storage.sync.set({ 
-      preset: selectedStyle, 
-      instruction: customInstruction 
-    });
+
+    // Save preferences with proper error handling
+    try {
+      if (chrome.storage?.sync && chrome.runtime?.id) {
+        chrome.storage.sync.set({
+          preset: selectedStyle,
+          instruction: customInstruction
+        });
+      }
+    } catch (error) {
+      console.log("Extension context error when saving preferences:", error);
+    }
 
     improveBtn.textContent = "Improving...";
     improveBtn.disabled = true;
@@ -118,7 +154,8 @@ function showStyleSelectionModal(originalText, composeBox) {
     try {
       chrome.runtime.sendMessage({
         action: "improve",
-        text: originalText,
+        subject: emailContent.subject,
+        text: emailContent.body,
         style: selectedStyle,
         instruction: customInstruction
       }, (response) => {
@@ -163,20 +200,45 @@ function showPreviewModal(original, improved) {
   const title = document.createElement("h2");
   title.textContent = "AI Email Preview";
 
+  // === ORIGINAL EMAIL SECTION ===
   const originalLabel = document.createElement("label");
   originalLabel.textContent = "Original:";
 
+  const originalSubjectLabel = document.createElement("label");
+  originalSubjectLabel.textContent = "Subject:";
+  originalSubjectLabel.style.fontSize = "0.9em";
+  originalSubjectLabel.style.marginTop = "5px";
+
+  const originalSubjectInput = document.createElement("input");
+  originalSubjectInput.type = "text";
+  originalSubjectInput.readOnly = true;
+  originalSubjectInput.value = original.subject || '(No subject)';
+  originalSubjectInput.style.marginBottom = "10px";
+
   const originalTextarea = document.createElement("textarea");
   originalTextarea.readOnly = true;
-  originalTextarea.value = original;
+  originalTextarea.value = original.body || original; // Handle both old and new format
 
+  // === IMPROVED EMAIL SECTION ===
   const improvedLabel = document.createElement("label");
   improvedLabel.textContent = "Improved:";
 
+  const improvedSubjectLabel = document.createElement("label");
+  improvedSubjectLabel.textContent = "Subject:";
+  improvedSubjectLabel.style.fontSize = "0.9em";
+  improvedSubjectLabel.style.marginTop = "5px";
+
+  const improvedSubjectInput = document.createElement("input");
+  improvedSubjectInput.type = "text";
+  improvedSubjectInput.id = "aiImprovedSubject";
+  improvedSubjectInput.value = improved.subject || original.subject || '';
+  improvedSubjectInput.style.marginBottom = "10px";
+
   const improvedTextarea = document.createElement("textarea");
   improvedTextarea.id = "aiImprovedBox";
-  improvedTextarea.value = improved;
+  improvedTextarea.value = improved.body || improved; // Handle both old and new format
 
+  // === BUTTONS ===
   const buttonsDiv = document.createElement("div");
   buttonsDiv.className = "ai-buttons";
 
@@ -191,36 +253,55 @@ function showPreviewModal(original, improved) {
   buttonsDiv.appendChild(applyBtn);
   buttonsDiv.appendChild(cancelBtn);
 
+  // === BUILD MODAL ===
   modalContent.appendChild(title);
   modalContent.appendChild(originalLabel);
+  modalContent.appendChild(originalSubjectLabel);
+  modalContent.appendChild(originalSubjectInput);
   modalContent.appendChild(originalTextarea);
   modalContent.appendChild(improvedLabel);
+  modalContent.appendChild(improvedSubjectLabel);
+  modalContent.appendChild(improvedSubjectInput);
   modalContent.appendChild(improvedTextarea);
   modalContent.appendChild(buttonsDiv);
 
   modal.appendChild(modalContent);
   document.body.appendChild(modal);
 
-  // Close modal when clicking on overlay (but not on modal content)
+  // Close on overlay click
   modal.onclick = (e) => {
     if (e.target === modal) {
       modal.remove();
     }
   };
 
+  // Apply button handler
   applyBtn.onclick = () => {
-    const newText = improvedTextarea.value;
+    const newSubject = improvedSubjectInput.value;
+    const newBody = improvedTextarea.value;
+
     const composeBox =
       document.querySelector('div[aria-label="Message Body"]') ||
       document.querySelector("textarea");
 
     if (composeBox) {
       if (composeBox.tagName === "DIV") {
-        composeBox.innerText = newText;
+        composeBox.innerText = newBody;
       } else {
-        composeBox.value = newText;
+        composeBox.value = newBody;
       }
     }
+
+    const subjectBox =
+      document.querySelector('input[name="subjectbox"]') ||
+      document.querySelector('input[aria-label="Subject"]');
+
+    if (subjectBox) {
+      subjectBox.value = newSubject;
+      subjectBox.dispatchEvent(new Event('input', { bubbles: true }));
+      subjectBox.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
     modal.remove();
   };
 

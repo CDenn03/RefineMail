@@ -7,6 +7,12 @@ class ComposeDetector {
     'div[contenteditable="true"][data-message-id]',
     '.Am.Al.editable'
   ];
+
+  subjectSelectors = [
+    'input[name="subjectbox"]',
+    'input[aria-label="Subject"]',
+    'input.aoT[placeholder="Subject"]'
+  ];
   
   startWatching(callback) {
     this.observer = new MutationObserver((mutations) => {
@@ -63,7 +69,37 @@ class ComposeDetector {
     
     return null;
   }
+
+  findSubjectBox(composeBox) {
+    const container = this.findBestContainer(composeBox);
+    
+    for (const selector of this.subjectSelectors) {
+      const subjectBox = container.querySelector(selector);
+      if (subjectBox) {
+        return subjectBox;
+      }
+    }
+    
+    for (const selector of this.subjectSelectors) {
+      const subjectBox = document.querySelector(selector);
+      if (subjectBox) {
+        return subjectBox;
+      }
+    }
+    
+    return null;
+  }
   
+  getEmailContent(composeBox) {
+    const subject = this.findSubjectBox(composeBox);
+    return {
+      subject: subject ? subject.value : '',
+      body: composeBox.innerText || composeBox.textContent || '',
+      subjectElement: subject,
+      bodyElement: composeBox
+    };
+  }
+
   findBestContainer(composeBox) {
     return composeBox.closest('[role="dialog"]') || 
            composeBox.closest('.nH') ||

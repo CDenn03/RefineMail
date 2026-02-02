@@ -56,41 +56,48 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 async function callOpenAI(systemPrompt, userPrompt, originalSubject, originalBody) {
   console.log("System prompt:", systemPrompt);
   console.log("User prompt:", userPrompt);
+  console.log("Original subject:", originalSubject);
+  console.log("Original body:", originalBody);
 
   await new Promise(resolve => setTimeout(resolve, 1000));
 
   const lines = userPrompt.split('\n');
   const styleLine = lines.find(line => line.startsWith('STYLE:'));
   const emailLine = lines.find(line => line.startsWith('EMAIL:'));
-  const instructionsLine = lines.find(line => line.startsWith('ADDITIONAL INSTRUCTIONS:'));
   
   const style = styleLine ? styleLine.replace('STYLE:', '').trim() : 'Neutral/Professional';
   const email = emailLine ? emailLine.replace('EMAIL:', '').trim() : originalBody;
-  const instructions = instructionsLine ? instructionsLine.replace('ADDITIONAL INSTRUCTIONS:', '').trim() : 'NONE';
 
-  let improvedBody = email;
+  console.log("Extracted style:", style);
+  console.log("Extracted email content:", email);
+  console.log("Using originalBody as fallback:", originalBody);
+
+  // Use originalBody if email extraction failed
+  const emailContent = email || originalBody || '';
+  
+  let improvedBody;
   
   switch (style) {
     case 'Formal':
-      improvedBody = `Dear Recipient,\n\nI hope this message finds you well. ${email.replaceAll(/Hi|Hey/gi, 'Dear').replaceAll(/Thanks/gi, 'Thank you')}\n\nBest regards`;
+      improvedBody = `Dear Recipient,\n\nI hope this message finds you well. ${emailContent.replaceAll(/Hi|Hey/gi, 'Dear').replaceAll(/Thanks/gi, 'Thank you')}\n\nBest regards`;
       break;
     case 'Friendly':
-      improvedBody = `Hi there!\n\n${email.replaceAll(/Dear/gi, 'Hi').replaceAll(/Sincerely/gi, 'Thanks!')} 😊\n\nBest,`;
+      improvedBody = `Hi there!\n\n${emailContent.replaceAll(/Dear/gi, 'Hi').replaceAll(/Sincerely/gi, 'Thanks!')} 😊\n\nBest,`;
       break;
     case 'Concise':
-      improvedBody = email.split('.').slice(0, 2).join('.') + '.';
+      improvedBody = emailContent.split('.').slice(0, 2).join('.') + '.';
       break;
     case 'Persuasive':
-      improvedBody = `${email}\n\nI believe this presents a valuable opportunity that would benefit us both. I'd appreciate your prompt consideration.`;
+      improvedBody = `${emailContent}\n\nI believe this presents a valuable opportunity that would benefit us both. I'd appreciate your prompt consideration.`;
       break;
     case 'Apologetic':
-      improvedBody = `I apologize for any inconvenience. ${email}\n\nThank you for your understanding.`;
+      improvedBody = `I apologize for any inconvenience. ${emailContent}\n\nThank you for your understanding.`;
       break;
     case 'Casual':
-      improvedBody = email.replaceAll(/Dear/gi, 'Hey').replaceAll(/Sincerely/gi, 'Cheers');
+      improvedBody = emailContent.replaceAll(/Dear/gi, 'Hey').replaceAll(/Sincerely/gi, 'Cheers');
       break;
     default:
-      improvedBody = email.replaceAll(/\s+/g, ' ').trim();
+      improvedBody = emailContent.replaceAll(/\s+/g, ' ').trim();
   }
 
   const mockResponses = [

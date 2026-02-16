@@ -1,3 +1,5 @@
+import { cleanAIResponse } from "./prompts/emailRewrite.v1.js";
+
 export const AI_MODEL_CONFIG = {
 
   model: "gpt-4.1-mini", 
@@ -10,13 +12,21 @@ export const AI_MODEL_CONFIG = {
 };
 
 export async function callOpenAIAPI(systemPrompt, userPrompt, originalSubject, originalBody) {
+  console.log("[DEBUG] callOpenAIAPI called");
+  console.log("[DEBUG] System prompt length:", systemPrompt?.length);
+  console.log("[DEBUG] User prompt length:", userPrompt?.length);
+  
   const API_KEY = 'your-openai-api-key-here'; 
   
+  console.log("[DEBUG] API_KEY check:", API_KEY ? "Key exists" : "No key", API_KEY === 'your-openai-api-key-here' ? "(placeholder)" : "(real key)");
+  
   if (!API_KEY || API_KEY === 'your-openai-api-key-here') {
+    console.error("[DEBUG] API key not configured!");
     throw new Error('OpenAI API key not configured');
   }
   
   try {
+    console.log("[DEBUG] Making fetch request to OpenAI...");
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -43,18 +53,28 @@ export async function callOpenAIAPI(systemPrompt, userPrompt, originalSubject, o
       })
     });
 
+    console.log("[DEBUG] Response status:", response.status, response.statusText);
+
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error("[DEBUG] API error response:", errorText);
+      throw new Error(`OpenAI API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
+    console.log("[DEBUG] API response received:", data);
     const improvedText = data.choices[0]?.message?.content;
     
+    console.log("[DEBUG] Improved text:", improvedText);
+    
     if (!improvedText) {
+      console.error("[DEBUG] No content in API response!");
       throw new Error('No response from OpenAI API');
     }
 
+    console.log("[DEBUG] Cleaning AI response...");
     const cleanedResponse = cleanAIResponse(improvedText);
+    console.log("[DEBUG] Cleaned response:", cleanedResponse);
     
     const bannedPhrases = ['Here\'s the rewrite', 'Here is the improved', 'dive into', 'game-changer'];
     const hasBannedPhrase = bannedPhrases.some(phrase => 
@@ -92,7 +112,7 @@ export async function callOpenAIAPI(systemPrompt, userPrompt, originalSubject, o
         const retryText = retryData.choices[0]?.message?.content;
         if (retryText) {
           return {
-            subject: originalSubject || "Improved Subject",
+            subject: originalSubject || "",
             body: cleanAIResponse(retryText)
           };
         }
@@ -100,15 +120,22 @@ export async function callOpenAIAPI(systemPrompt, userPrompt, originalSubject, o
     }
 
     return {
-      subject: originalSubject || "Improved Subject", 
+      subject: originalSubject || "",
       body: cleanedResponse
     };
     
   } catch (error) {
-    console.error('OpenAI API call failed:', error);
+    console.error('[DEBUG] OpenAI API call failed:', error);
+    console.error('[DEBUG] Error details:', error.message, error.stack);
     throw error;
   }
 }
+
+// Instructions for integrating with real API:
+// 1. Replace the mock callOpenAI function in background.js with callOpenAIAPI
+// 2. Add your OpenAI API key to the API_KEY constant above
+// 3. Import this file in background.js: import { callOpenAIAPI } from './ai-config.js';
+// 4. Update the function call: callOpenAIAPI(EMAIL_REWRITE_SYSTEM_PROMPT, userPrompt, subject, text)
 
 // Instructions for integrating with real API:
 // 1. Replace the mock callOpenAI function in background.js with callOpenAIAPI

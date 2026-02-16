@@ -4,8 +4,10 @@ class DragHandler {
     this.isDragging = false;
     this.dragOffset = { x: 0, y: 0 };
     this.startPos = { x: 0, y: 0 };
+    this.currentPos = { x: 0, y: 0 };
     this.mouseMoveHandler = null;
     this.mouseUpHandler = null;
+    this.rafId = null;
     
     this.initializeDragging();
   }
@@ -22,7 +24,6 @@ class DragHandler {
     this.dragOffset.y = e.clientY - rect.top;
     
     this.button.style.cursor = "grabbing";
-    this.button.style.transform = "scale(1.1)";
     this.button.isDragging = false;
     
     e.preventDefault();
@@ -35,23 +36,30 @@ class DragHandler {
     this.mouseMoveHandler = (moveEvent) => this.handleMouseMove(moveEvent);
     this.mouseUpHandler = (upEvent) => this.handleMouseUp(upEvent);
     
-    document.addEventListener('mousemove', this.mouseMoveHandler);
+    document.addEventListener('mousemove', this.mouseMoveHandler, { passive: false });
     document.addEventListener('mouseup', this.mouseUpHandler);
   }
   
   handleMouseMove(moveEvent) {
+    moveEvent.preventDefault();
+    
     if (this.startPos.x !== 0 && this.startPos.y !== 0) {
       const distance = Math.sqrt(
         Math.pow(moveEvent.clientX - this.startPos.x, 2) + 
         Math.pow(moveEvent.clientY - this.startPos.y, 2)
       );
       
-      if (distance > 5 && !this.isDragging) {
+      if (distance > 3 && !this.isDragging) {
         this.startDragging();
       }
       
       if (this.isDragging) {
-        this.updatePosition(moveEvent);
+        this.currentPos.x = moveEvent.clientX - this.dragOffset.x;
+        this.currentPos.y = moveEvent.clientY - this.dragOffset.y;
+        
+        if (!this.rafId) {
+          this.rafId = requestAnimationFrame(() => this.updatePosition());
+        }
       }
     }
   }
@@ -61,21 +69,30 @@ class DragHandler {
     this.button.isDragging = true;
     
     const currentRect = this.button.getBoundingClientRect();
+    
+    // Disable transitions during drag for immediate response
+    this.button.style.transition = "none";
     this.button.style.position = "fixed";
     this.button.style.left = currentRect.left + "px";
     this.button.style.top = currentRect.top + "px";
     this.button.style.bottom = "auto";
     this.button.style.right = "auto";
     this.button.style.zIndex = "99999";
+    this.button.style.transform = "scale(1.15) rotate(8deg)";
   }
   
-  updatePosition(moveEvent) {
-    this.button.style.left = (moveEvent.clientX - this.dragOffset.x) + "px";
-    this.button.style.top = (moveEvent.clientY - this.dragOffset.y) + "px";
+  updatePosition() {
+    if (this.isDragging) {
+      this.button.style.left = this.currentPos.x + "px";
+      this.button.style.top = this.currentPos.y + "px";
+    }
+    this.rafId = null;
   }
   
   handleMouseUp(upEvent) {
-    this.button.style.cursor = "move";
+    // Re-enable transitions
+    this.button.style.transition = "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+    this.button.style.cursor = "pointer";
     this.button.style.transform = "scale(1)";
     
     const wasDragging = this.isDragging;
@@ -92,10 +109,16 @@ class DragHandler {
   }
   
   cleanup() {
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
+    
     document.removeEventListener('mousemove', this.mouseMoveHandler);
     document.removeEventListener('mouseup', this.mouseUpHandler);
     
     this.startPos = { x: 0, y: 0 };
+    this.currentPos = { x: 0, y: 0 };
     this.isDragging = false;
     this.button.isDragging = false;
     this.mouseMoveHandler = null;

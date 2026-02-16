@@ -1,6 +1,4 @@
 function showStyleSelectionModal(originalText, composeBox) {
-  console.log("showStyleSelectionModal called with text:", originalText);
-
   if (!chrome.runtime?.id) {
     alert("Extension needs to be refreshed. Please reload the page and try again.");
     return;
@@ -20,9 +18,13 @@ function showStyleSelectionModal(originalText, composeBox) {
   const detector = new ComposeDetector();
   const emailContent = detector.getEmailContent(composeBox);
 
+  if (!emailContent.body || emailContent.body.trim().length === 0) {
+  alert("Please write some text in the email before improving it.");
+  return;
+}
+
   let oldModal = document.getElementById("aiStyleModal");
   if (oldModal) {
-    console.log("Removing old modal");
     oldModal.remove();
   }
 
@@ -30,12 +32,8 @@ function showStyleSelectionModal(originalText, composeBox) {
   modal.id = "aiStyleModal";
   modal.className = "ai-modal-overlay";
 
-  console.log("Created modal element:", modal);
-
   const modalContent = document.createElement("div");
   modalContent.className = "ai-modal";
-
-  console.log("Created modal content:", modalContent);
 
   const title = document.createElement("h2");
   title.textContent = "AI Email Improver";
@@ -46,7 +44,8 @@ function showStyleSelectionModal(originalText, composeBox) {
   const subjectInput = document.createElement("input");
   subjectInput.type = "text";
   subjectInput.readOnly = true;
-  subjectInput.value = emailContent.subject || '(No subject)';
+  subjectInput.value = emailContent.subject || '';
+  subjectInput.placeholder = '(No subject)';
   subjectInput.style.marginBottom = "10px";
 
   const bodyLabel = document.createElement("label");
@@ -137,11 +136,8 @@ function showStyleSelectionModal(originalText, composeBox) {
   modal.appendChild(modalContent);
   document.body.appendChild(modal);
 
-  console.log("Modal added to document body. Modal in DOM:", document.getElementById("aiStyleModal"));
-
   modal.onclick = (e) => {
     if (e.target === modal) {
-      console.log("Closing modal via overlay click");
       modal.remove();
     }
   };
@@ -150,7 +146,6 @@ function showStyleSelectionModal(originalText, composeBox) {
     if (chrome.storage?.sync && chrome.runtime?.id) {
       chrome.storage.sync.get(["preset", "instruction"], (res) => {
         if (chrome.runtime.lastError) {
-          console.log("Could not load saved preferences:", chrome.runtime.lastError);
           return;
         }
         if (res.preset && styles.includes(res.preset)) {
@@ -159,14 +154,18 @@ function showStyleSelectionModal(originalText, composeBox) {
         }
         if (res.instruction) instructionTextarea.value = res.instruction;
       });
-    } else {
-      console.log("Chrome storage not available in this context");
     }
   } catch (error) {
-    console.log("Extension context error when loading preferences:", error);
+    // Silent fail
   }
 
+  let isProcessing = false;
+
   improveBtn.onclick = () => {
+    if (improveBtn.disabled) return;
+    if (isProcessing) return;
+    isProcessing = true;
+
     const selectedStyle = styleSelect.value;
     const customInstruction = instructionTextarea.value.trim();
 
@@ -174,6 +173,7 @@ function showStyleSelectionModal(originalText, composeBox) {
     if (!validStyles.includes(selectedStyle)) {
       warningDiv.textContent = "Please select a valid style.";
       warningDiv.style.display = "block";
+      isProcessing = false;
       return;
     }
 
@@ -189,16 +189,16 @@ function showStyleSelectionModal(originalText, composeBox) {
     if (hasNewContentRequest) {
       warningDiv.textContent = "Instructions cannot request new content creation. Please focus on style changes only.";
       warningDiv.style.display = "block";
+      isProcessing = false;
       return;
     }
 
     warningDiv.style.display = "none";
 
-    console.log("Improve button clicked with style:", selectedStyle, "instruction:", customInstruction);
-
     if (!chrome.runtime?.id) {
       alert("Extension needs to be refreshed. Please reload the page and try again.");
       modal.remove();
+      isProcessing = false;
       return;
     }
 
@@ -210,10 +210,10 @@ function showStyleSelectionModal(originalText, composeBox) {
         });
       }
     } catch (error) {
-      console.log("Extension context error when saving preferences:", error);
+      // Silent fail
     }
 
-    improveBtn.textContent = "Improving...";
+    improveBtn.classList.add("loading");
     improveBtn.disabled = true;
 
     try {
@@ -225,33 +225,31 @@ function showStyleSelectionModal(originalText, composeBox) {
         instruction: customInstruction || null
       }, (response) => {
         if (chrome.runtime.lastError) {
-          console.error("Runtime error:", chrome.runtime.lastError);
           if (chrome.runtime.lastError.message?.includes("Extension context invalidated")) {
             alert("Extension needs to be refreshed. Please reload the page and try again.");
             modal.remove();
           } else {
             improveBtn.textContent = "Error - Try Again";
             improveBtn.disabled = false;
+            isProcessing = false;
           }
         } else {
-          console.log("Message sent successfully, closing modal");
           modal.remove();
         }
       });
     } catch (error) {
-      console.error("Extension context error:", error);
       alert("Extension needs to be refreshed. Please reload the page and try again.");
       modal.remove();
+      isProcessing = false;
     }
   };
 
   cancelBtn.onclick = () => {
-    console.log("Cancel button clicked");
     modal.remove();
   };
 }
 
-function showPreviewModal(original, improved) {
+function showPreviewModal(original, improved, composeBox) {
   let oldModal = document.getElementById("aiPreviewModal");
   if (oldModal) oldModal.remove();
 
@@ -276,7 +274,8 @@ function showPreviewModal(original, improved) {
   const originalSubjectInput = document.createElement("input");
   originalSubjectInput.type = "text";
   originalSubjectInput.readOnly = true;
-  originalSubjectInput.value = original.subject || '(No subject)';
+  originalSubjectInput.value = original.subject || '';
+  originalSubjectInput.placeholder = '(No subject)';
   originalSubjectInput.style.marginBottom = "10px";
 
   const originalTextarea = document.createElement("textarea");
@@ -295,6 +294,7 @@ function showPreviewModal(original, improved) {
   improvedSubjectInput.type = "text";
   improvedSubjectInput.id = "aiImprovedSubject";
   improvedSubjectInput.value = improved.subject || original.subject || '';
+  improvedSubjectInput.placeholder = '(No subject)';
   improvedSubjectInput.style.marginBottom = "10px";
 
   const improvedTextarea = document.createElement("textarea");
@@ -336,16 +336,15 @@ function showPreviewModal(original, improved) {
   };
 
   applyBtn.onclick = () => {
-    const newSubject = improvedSubjectInput.value;
+    const newSubject = improvedSubjectInput.value.trim();
     const newBody = improvedTextarea.value;
 
-    const composeBox =
-      document.querySelector('div[aria-label="Message Body"]') ||
-      document.querySelector("textarea");
-
+    // Use the passed composeBox reference instead of querying again
     if (composeBox) {
       if (composeBox.tagName === "DIV") {
         composeBox.innerText = newBody;
+        composeBox.dispatchEvent(new Event('input', { bubbles: true }));
+        composeBox.dispatchEvent(new Event('keyup', { bubbles: true }));
       } else {
         composeBox.value = newBody;
       }
@@ -355,7 +354,7 @@ function showPreviewModal(original, improved) {
       document.querySelector('input[name="subjectbox"]') ||
       document.querySelector('input[aria-label="Subject"]');
 
-    if (subjectBox) {
+    if (subjectBox && newSubject) {
       subjectBox.value = newSubject;
       subjectBox.dispatchEvent(new Event('input', { bubbles: true }));
       subjectBox.dispatchEvent(new Event('change', { bubbles: true }));

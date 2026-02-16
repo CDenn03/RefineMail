@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showEmailContent(subject, body, wordCount, isValid, validationError) {
-    currentSubject.value = subject || "(No subject)";
+    currentSubject.value = subject || "";
 
     const preview = body.length > 150 ? body.substring(0, 150) + "..." : body;
     currentBody.value = preview;

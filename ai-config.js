@@ -1,4 +1,4 @@
-import { cleanAIResponse } from "./prompts/emailRewrite.v1.js";
+import { parseAIResponse } from "./prompts/emailRewrite.v1.js";
 
 export const AI_MODEL_CONFIG = {
 
@@ -72,19 +72,23 @@ export async function callOpenAIAPI(systemPrompt, userPrompt, originalSubject, o
       throw new Error('No response from OpenAI API');
     }
 
-    console.log("[DEBUG] Cleaning AI response...");
-    const cleanedResponse = cleanAIResponse(improvedText);
-    console.log("[DEBUG] Cleaned response:", cleanedResponse);
+    console.log("[DEBUG] Parsing AI response...");
+    const parsed = parseAIResponse(improvedText);
+    console.log("[DEBUG] Parsed response:", parsed);
+    
+    // Use original subject if AI didn't provide one
+    const finalSubject = parsed.subject || originalSubject || "";
+    const finalBody = parsed.body;
     
     const bannedPhrases = ['Here\'s the rewrite', 'Here is the improved', 'dive into', 'game-changer'];
     const hasBannedPhrase = bannedPhrases.some(phrase => 
-      cleanedResponse.toLowerCase().includes(phrase.toLowerCase())
+      finalBody.toLowerCase().includes(phrase.toLowerCase())
     );
     
     if (hasBannedPhrase) {
       console.log("Detected banned phrase, retrying with reminder...");
       
-      const retryPrompt = userPrompt + "\n\nReminder: Output rewritten email only. No commentary.";
+      const retryPrompt = userPrompt + "\n\nReminder: Output in SUBJECT:/BODY: format only. No commentary.";
       
       const retryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -111,17 +115,18 @@ export async function callOpenAIAPI(systemPrompt, userPrompt, originalSubject, o
         const retryData = await retryResponse.json();
         const retryText = retryData.choices[0]?.message?.content;
         if (retryText) {
+          const retryParsed = parseAIResponse(retryText);
           return {
-            subject: originalSubject || "",
-            body: cleanAIResponse(retryText)
+            subject: retryParsed.subject || originalSubject || "",
+            body: retryParsed.body
           };
         }
       }
     }
 
     return {
-      subject: originalSubject || "",
-      body: cleanedResponse
+      subject: finalSubject,
+      body: finalBody
     };
     
   } catch (error) {

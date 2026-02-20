@@ -1,7 +1,6 @@
 import { 
   EMAIL_REWRITE_SYSTEM_PROMPT, 
   createStructuredPrompt, 
-  cleanAIResponse, 
   validateEmail, 
   validateStyle 
 } from "./prompts/emailRewrite.v1.js";
@@ -30,7 +29,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const normalizedStyle = validateStyle(style) ? style : "Neutral/Professional";
     console.log("[DEBUG] Normalized style:", normalizedStyle);
     
-    const userPrompt = createStructuredPrompt(normalizedStyle, text, instruction);
+    const userPrompt = createStructuredPrompt(normalizedStyle, subject, text, instruction);
     console.log("[DEBUG] Created user prompt, calling OpenAI API...");
 
     callOpenAIAPI(EMAIL_REWRITE_SYSTEM_PROMPT, userPrompt, subject, text)

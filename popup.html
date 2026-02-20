@@ -5,58 +5,6 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="card">
-    <h2>AI Email Improver</h2>
-    <div class="card-body">
-      <div id="currentEmailSection" style="display: none;">
-        <h3 style="margin: 0 0 12px 0; color: #124170; font-size: 14px;">Current Email</h3>
-        
-        <label for="currentSubject">Subject:</label>
-        <input type="text" id="currentSubject" readonly style="background: #f9f9f9; margin-bottom: 8px;">
-        
-        <label for="currentBody">Message Preview:</label>
-        <textarea id="currentBody" readonly style="background: #f9f9f9; height: 60px; margin-bottom: 12px;"></textarea>
-        
-        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-          <button id="improveNow" style="flex: 1; background: #124170; color: white;">Improve Now</button>
-          <button id="refreshEmail" style="flex: 0 0 auto; background: #f5f5f5; color: #333; border: 1px solid #ddd; padding: 8px;">↻</button>
-        </div>
-        
-        <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
-      </div>
-      
-      <div id="noEmailSection">
-        <p style="font-size: 13px; color: #666; margin-bottom: 16px;">
-          Click the AI button in your email compose box to improve your email with customizable styles and instructions.
-        </p>
-        <button id="detectEmail" style="width: 100%; background: #124170; color: white; margin-bottom: 16px;">Check for Active Email</button>
-      </div>
-
-      <div id="settingsSection">
-        <h3 style="margin: 0 0 12px 0; color: #124170; font-size: 14px;">Default Settings</h3>
-        
-        <label for="preset">Default style:</label>
-        <select id="preset">
-          <option value="Formal">Formal</option>
-          <option value="Friendly">Friendly</option>
-          <option value="Concise">Concise</option>
-          <option value="Persuasive">Persuasive</option>
-          <option value="Apologetic">Apologetic</option>
-          <option value="Casual">Casual</option>
-          <option value="Neutral/Professional">Neutral/Professional</option>
-        </select>
-    
-        <label for="instruction">Default custom instructions:</label>
-        <textarea id="instruction" placeholder="e.g. make it urgent but polite"></textarea>
-    
-        <button id="saveSettings">Save Default Settings</button>
-        <div id="statusMsg"></div>
-      </div>
-      
-      <p class="note"><a href="privacy.html" target="_blank">Privacy Policy</a></p>
-    </div>
-  </div>
-
   <script src="popup.js"></script>
 </body>
 </html>

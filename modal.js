@@ -1,3 +1,4 @@
+
 function showStyleSelectionModal(originalText, composeBox) {
   if (!chrome.runtime?.id) {
     alert("Extension needs to be refreshed. Please reload the page and try again.");
@@ -62,33 +63,22 @@ function showStyleSelectionModal(originalText, composeBox) {
 
   const styleSelect = document.createElement("select");
   styleSelect.id = "styleSelect";
-  const styles = ["Formal", "Friendly", "Concise", "Persuasive", "Apologetic", "Casual", "Neutral/Professional"];
-  styles.forEach(style => {
+  VALID_STYLES.forEach(style => {
     const option = document.createElement("option");
     option.value = style;
     option.textContent = style;
     styleSelect.appendChild(option);
   });
 
-  const styleDescriptions = {
-    "Formal": "Professional, structured, respectful tone",
-    "Friendly": "Warm, approachable, conversational",
-    "Concise": "Brief, direct, essential information only",
-    "Persuasive": "Compelling, action-oriented, convincing",
-    "Apologetic": "Regretful, understanding, solution-focused",
-    "Casual": "Relaxed, informal, natural language",
-    "Neutral/Professional": "Balanced, clear, business-appropriate"
-  };
-
   const styleDescription = document.createElement("div");
   styleDescription.id = "styleDescription";
   styleDescription.style.fontSize = "0.9em";
   styleDescription.style.color = "#666";
   styleDescription.style.marginBottom = "10px";
-  styleDescription.textContent = styleDescriptions[styleSelect.value];
+  styleDescription.textContent = STYLE_DESCRIPTIONS[styleSelect.value];
 
   styleSelect.addEventListener('change', () => {
-    styleDescription.textContent = styleDescriptions[styleSelect.value];
+    styleDescription.textContent = STYLE_DESCRIPTIONS[styleSelect.value];
   });
 
   const instructionLabel = document.createElement("label");
@@ -144,15 +134,14 @@ function showStyleSelectionModal(originalText, composeBox) {
 
   try {
     if (chrome.storage?.sync && chrome.runtime?.id) {
-      chrome.storage.sync.get(["preset", "instruction"], (res) => {
+      chrome.storage.sync.get(["preset"], (res) => {
         if (chrome.runtime.lastError) {
           return;
         }
-        if (res.preset && styles.includes(res.preset)) {
+        if (res.preset && VALID_STYLES.includes(res.preset)) {
           styleSelect.value = res.preset;
-          styleDescription.textContent = styleDescriptions[res.preset];
+          styleDescription.textContent = STYLE_DESCRIPTIONS[res.preset];
         }
-        if (res.instruction) instructionTextarea.value = res.instruction;
       });
     }
   } catch (error) {
@@ -169,8 +158,7 @@ function showStyleSelectionModal(originalText, composeBox) {
     const selectedStyle = styleSelect.value;
     const customInstruction = instructionTextarea.value.trim();
 
-    const validStyles = ["Formal", "Friendly", "Concise", "Persuasive", "Apologetic", "Casual", "Neutral/Professional"];
-    if (!validStyles.includes(selectedStyle)) {
+    if (!VALID_STYLES.includes(selectedStyle)) {
       warningDiv.textContent = "Please select a valid style.";
       warningDiv.style.display = "block";
       isProcessing = false;
@@ -205,8 +193,7 @@ function showStyleSelectionModal(originalText, composeBox) {
     try {
       if (chrome.storage?.sync && chrome.runtime?.id) {
         chrome.storage.sync.set({
-          preset: selectedStyle,
-          instruction: customInstruction
+          preset: selectedStyle
         });
       }
     } catch (error) {

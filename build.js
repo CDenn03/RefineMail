@@ -1,7 +1,7 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
-// Load .env file
+
 const envPath = path.join(process.cwd(), '.env');
 const envContent = fs.readFileSync(envPath, 'utf-8');
 const envVars = {};
@@ -13,11 +13,11 @@ envContent.split('\n').forEach(line => {
   }
 });
 
-// Read ai-config.js
+
 const configPath = path.join(process.cwd(), 'ai-config.js');
 let configContent = fs.readFileSync(configPath, 'utf-8');
 
-// Replace placeholder with actual API key
+
 configContent = configContent.replace(
   "'your-openai-api-key-here'",
   `'${envVars.OPENAI_API_KEY}'`

@@ -30,6 +30,7 @@
         "https://*/zimbra/*"
       ],
       "js": [
+        "constants.js",
         "button-manager.js",
         "drag-handler.js", 
         "compose-detector.js",

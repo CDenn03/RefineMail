@@ -1,3 +1,4 @@
+// VALID_STYLES is defined in constants.js and imported here for ES6 modules
 export const VALID_STYLES = [
   "Formal",
   "Friendly",
@@ -159,9 +160,9 @@ export function cleanAIResponse(response) {
     cleaned = cleaned.slice(1, -1).trim();
   }
 
-  cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, "$1");
-  cleaned = cleaned.replace(/\*(.*?)\*/g, "$1");
-  cleaned = cleaned.replace(/`(.*?)`/g, "$1");
+  cleaned = cleaned.replaceAll(/\*\*(.*?)\*\*/g, "$1");
+  cleaned = cleaned.replaceAll(/\*(.*?)\*/g, "$1");
+  cleaned = cleaned.replaceAll(/`(.*?)`/g, "$1");
 
   cleaned = cleaned.replace(/^\s+/, "");
 

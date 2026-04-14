@@ -4,7 +4,7 @@
 
 ## 🚀 Demo
 
-[Chrome Web Store](#) | [GitHub](#)
+[GitHub](https://github.com/CDenn03/ai-email-refiner)
 
 ## 📋 About
 
@@ -38,34 +38,46 @@ Built for professionals who write a lot of email and want to communicate more cl
 
 ### Prerequisites
 
-- Node.js v18+
-- An OpenAI API key
-- Google Chrome (or Chromium-based browser)
+- [Node.js v18+](https://nodejs.org/)
+- An [OpenAI API key](https://platform.openai.com/api-keys)
+- Google Chrome (or any Chromium-based browser)
 
 ### Installation
 
+**1. Clone the repo**
+
 ```bash
-git clone https://github.com/your-username/ai-email-refiner.git
+git clone https://github.com/CDenn03/ai-email-refiner.git
 cd ai-email-refiner
+```
+
+**2. Add your API key**
+
+Create a `.env` file in the root of the project:
+
+```bash
+OPENAI_API_KEY=your-openai-api-key-here
+```
+
+**3. Install dependencies and build**
+
+```bash
 npm install
 npm run build
 ```
 
-Then load the extension in Chrome:
+This injects your API key and copies all extension files into the `dist/` folder.
 
-1. Go to `chrome://extensions`
-2. Enable **Developer mode**
-3. Click **Load unpacked** and select the `dist/` folder
+**4. Load the extension in Chrome**
 
-## 🔐 Environment Variables
+1. Open Chrome and go to `chrome://extensions`
+2. Enable **Developer mode** (toggle in the top right)
+3. Click **Load unpacked**
+4. Select the `dist/` folder from this project
 
-Add your OpenAI API key in `ai-config.js`:
+The extension icon will appear in your toolbar. Open Gmail or Zimbra and start a new compose window to use it.
 
-```js
-const API_KEY = 'your-openai-api-key-here';
-```
-
-> For production use, consider proxying API calls through a backend to avoid exposing your key in the extension bundle.
+> Your API key is embedded into the local build and never sent anywhere except directly to OpenAI. It is not committed to the repo — `.env` is gitignored.
 
 ## 📸 Screenshots
 

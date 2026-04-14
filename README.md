@@ -79,10 +79,4 @@ The extension icon will appear in your toolbar. Open Gmail or Zimbra and start a
 
 > Your API key is embedded into the local build and never sent anywhere except directly to OpenAI. It is not committed to the repo — `.env` is gitignored.
 
-## 📸 Screenshots
 
-*(Add screenshots here)*
-
-## 📄 License
-
-MIT
